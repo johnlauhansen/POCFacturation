@@ -29,7 +29,7 @@ public class Invoice
 
     // Totaux calculés
     public decimal TotalHT { get; set; }
-    public decimal TotalVAT { get; set; }
+    public decimal TotalTVA { get; set; }
     public decimal TotalTTC { get; set; }
 
     // --- Sécurité Anti-Fraude (Loi TVA / NF525) ---

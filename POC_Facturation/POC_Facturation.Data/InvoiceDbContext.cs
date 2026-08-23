@@ -23,7 +23,7 @@ internal class InvoiceDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.InvoiceNumber).IsRequired();
             entity.Property(e => e.TotalHT).HasConversion<double>();
-            entity.Property(e => e.TotalVAT).HasConversion<double>();
+            entity.Property(e => e.TotalTVA).HasConversion<double>();
             entity.Property(e => e.TotalTTC).HasConversion<double>();
             
             entity.HasMany(e => e.LineItems)
