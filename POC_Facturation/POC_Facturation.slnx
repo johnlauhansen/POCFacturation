@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="POC_Facturation/POC_Facturation.csproj" />
+  <Project Path="POC_Facturation.Domain/POC_Facturation.Domain.csproj" />
+  <Project Path="POC_Facturation.Data/POC_Facturation.Data.csproj" />
+  <Project Path="POC_Facturation.Services/POC_Facturation.Services.csproj" />
 </Solution>
