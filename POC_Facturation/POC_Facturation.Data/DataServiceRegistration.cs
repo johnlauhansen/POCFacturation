@@ -19,4 +19,18 @@ public static class DataServiceRegistration
 
         return services;
     }
+
+    /// <summary>
+    /// Initialise la base de données SQLite locale en s'assurant de la création du schéma.
+    /// Cette méthode permet d'encapsuler totalement l'usage du DbContext interne.
+    /// </summary>
+    public static IServiceProvider InitializeDatabase(this IServiceProvider serviceProvider)
+    {
+        using (var scope = serviceProvider.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<InvoiceDbContext>();
+            dbContext.Database.EnsureCreated();
+        }
+        return serviceProvider;
+    }
 }
