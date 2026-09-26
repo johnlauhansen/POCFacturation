@@ -103,12 +103,12 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Factures Élevage" Foreground="White" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" />
-                    <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="+ Nouveau" Command="{Binding CreateDraftInvoiceCommand}" Height="30" Padding="12,2" />
+                    <Button x:Name="NewInvoiceButton" AutomationProperties.AutomationId="Btn_NewInvoice" ToolTip="Créer une nouvelle facture brouillon" Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="+ Nouveau" Command="{Binding CreateDraftInvoiceCommand}" Height="30" Padding="12,2" />
                 </Grid>
             </Border>
 
             <!-- Liste des factures -->
-            <ListBox ItemsSource="{Binding Invoices}" SelectedItem="{Binding SelectedInvoice}" Grid.Row="1" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Padding="10">
+            <ListBox x:Name="InvoicesListBox" AutomationProperties.AutomationId="List_Invoices" ItemsSource="{Binding Invoices}" SelectedItem="{Binding SelectedInvoice}" Grid.Row="1" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Padding="10">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="5,8" HorizontalAlignment="Stretch" Width="280">
@@ -170,7 +170,7 @@
                     <TextBlock Text="🐶" FontSize="72" HorizontalAlignment="Center" Margin="0,0,0,10" />
                     <TextBlock Text="Aucune facture sélectionnée" FontSize="18" FontWeight="Bold" Foreground="#718096" HorizontalAlignment="Center" />
                     <TextBlock Text="Sélectionnez une facture dans la liste ou cliquez sur '+ Nouveau'" FontSize="13" Foreground="#A0AEC0" Margin="0,5,0,15" HorizontalAlignment="Center" />
-                    <Button Style="{StaticResource PrimaryButton}" Content="Créer un brouillon" Command="{Binding CreateDraftInvoiceCommand}" HorizontalAlignment="Center" Padding="15,8" />
+                    <Button x:Name="EmptyStateNewInvoiceButton" AutomationProperties.AutomationId="Btn_EmptyStateNewInvoice" ToolTip="Créer une nouvelle facture brouillon" Style="{StaticResource PrimaryButton}" Content="Créer un brouillon" Command="{Binding CreateDraftInvoiceCommand}" HorizontalAlignment="Center" Padding="15,8" />
                 </StackPanel>
             </Grid>
 
@@ -213,11 +213,11 @@
                         <!-- Actions droites (Sauvegarder, Valider, Avoir) -->
                         <StackPanel Orientation="Horizontal" Grid.Column="1">
                             <!-- Enregistrement brouillon -->
-                            <Button Style="{StaticResource ModernButton}" Content="Sauvegarder" Command="{Binding SaveInvoiceCommand}" Visibility="{Binding IsInvoiceDraft, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,8,0" />
+                            <Button x:Name="SaveInvoiceButton" AutomationProperties.AutomationId="Btn_SaveInvoice" ToolTip="Enregistrer les modifications en base locale" Style="{StaticResource ModernButton}" Content="Sauvegarder" Command="{Binding SaveInvoiceCommand}" Visibility="{Binding IsInvoiceDraft, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,8,0" />
                             <!-- Validation fiscale officielle (Inaltérable) -->
-                            <Button Style="{StaticResource SuccessButton}" Content="Valider Fiscalement (Sceller)" Command="{Binding ValidateInvoiceCommand}" Visibility="{Binding IsInvoiceDraft, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,8,0" />
+                            <Button x:Name="ValidateInvoiceButton" AutomationProperties.AutomationId="Btn_ValidateInvoice" ToolTip="Valider et sceller définitivement la facture (inaltérable)" Style="{StaticResource SuccessButton}" Content="Valider Fiscalement (Sceller)" Command="{Binding ValidateInvoiceCommand}" Visibility="{Binding IsInvoiceDraft, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,8,0" />
                             <!-- Annuler via Avoir -->
-                            <Button Style="{StaticResource DangerButton}" Content="Créer un Avoir (Annulation)" Command="{Binding CreateCreditNoteCommand}" Visibility="{Binding IsInvoiceValidated, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            <Button x:Name="CreateCreditNoteButton" AutomationProperties.AutomationId="Btn_CreateCreditNote" ToolTip="Générer un avoir fiscal négatif pour annuler cette facture" Style="{StaticResource DangerButton}" Content="Créer un Avoir (Annulation)" Command="{Binding CreateCreditNoteCommand}" Visibility="{Binding IsInvoiceValidated, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -251,7 +251,7 @@
                                             <ColumnDefinition Width="120" />
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="Émise le :" FontWeight="SemiBold" Foreground="#4A5568" />
-                                        <DatePicker SelectedDate="{Binding SelectedInvoice.IssueDate}" Grid.Column="1" IsEnabled="{Binding IsInvoiceDraft}" Height="25" />
+                                        <DatePicker x:Name="IssueDatePicker" AutomationProperties.AutomationId="Picker_IssueDate" SelectedDate="{Binding SelectedInvoice.IssueDate}" Grid.Column="1" IsEnabled="{Binding IsInvoiceDraft}" Height="25" />
                                     </Grid>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -259,7 +259,7 @@
                                             <ColumnDefinition Width="120" />
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="Échéance :" FontWeight="SemiBold" Foreground="#4A5568" />
-                                        <DatePicker SelectedDate="{Binding SelectedInvoice.DueDate}" Grid.Column="1" IsEnabled="{Binding IsInvoiceDraft}" Height="25" />
+                                        <DatePicker x:Name="DueDatePicker" AutomationProperties.AutomationId="Picker_DueDate" SelectedDate="{Binding SelectedInvoice.DueDate}" Grid.Column="1" IsEnabled="{Binding IsInvoiceDraft}" Height="25" />
                                     </Grid>
                                 </StackPanel>
                             </Grid>
@@ -276,15 +276,15 @@
                                 <!-- Bloc Client -->
                                 <StackPanel>
                                     <TextBlock Text="FACTURER À :" FontWeight="Bold" FontSize="11" Foreground="#718096" Margin="0,0,0,6" />
-                                    <TextBox Text="{Binding SelectedInvoice.CustomerName, UpdateSourceTrigger=PropertyChanged}" FontSize="14" FontWeight="Bold" Foreground="#2D3748" BorderBrush="#CBD5E0" BorderThickness="0,0,0,1" Background="Transparent" IsReadOnly="{Binding IsInvoiceValidated}" Margin="0,0,0,6" Padding="0,3" />
-                                    <TextBox Text="{Binding SelectedInvoice.CustomerAddress, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Foreground="#4A5568" BorderBrush="#CBD5E0" BorderThickness="0,0,0,1" Background="Transparent" IsReadOnly="{Binding IsInvoiceValidated}" Padding="0,3" AcceptsReturn="True" Height="40" />
+                                    <TextBox x:Name="CustomerNameTextBox" AutomationProperties.AutomationId="Txt_CustomerName" Text="{Binding SelectedInvoice.CustomerName, UpdateSourceTrigger=PropertyChanged}" FontSize="14" FontWeight="Bold" Foreground="#2D3748" BorderBrush="#CBD5E0" BorderThickness="0,0,0,1" Background="Transparent" IsReadOnly="{Binding IsInvoiceValidated}" Margin="0,0,0,6" Padding="0,3" />
+                                    <TextBox x:Name="CustomerAddressTextBox" AutomationProperties.AutomationId="Txt_CustomerAddress" Text="{Binding SelectedInvoice.CustomerAddress, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Foreground="#4A5568" BorderBrush="#CBD5E0" BorderThickness="0,0,0,1" Background="Transparent" IsReadOnly="{Binding IsInvoiceValidated}" Padding="0,3" AcceptsReturn="True" Height="40" />
                                 </StackPanel>
 
                                 <!-- Bloc Régime TVA -->
                                 <Border Grid.Column="1" Background="#F7FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="4" Padding="12" Margin="15,0,0,0">
                                     <StackPanel>
                                         <TextBlock Text="Régime de TVA" FontWeight="Bold" FontSize="11" Foreground="#718096" Margin="0,0,0,6" />
-                                        <CheckBox IsChecked="{Binding SelectedInvoice.IsTvaApplicable}" Content="Assujetti à la TVA (20%)" IsEnabled="{Binding IsInvoiceDraft}" VerticalAlignment="Center" />
+                                        <CheckBox x:Name="IsTvaApplicableCheckBox" AutomationProperties.AutomationId="Chk_IsTvaApplicable" IsChecked="{Binding SelectedInvoice.IsTvaApplicable}" Content="Assujetti à la TVA (20%)" IsEnabled="{Binding IsInvoiceDraft}" VerticalAlignment="Center" />
                                         <TextBlock Text="Exonération Art. 293 B" FontSize="10" Foreground="#A0AEC0" Margin="0,6,0,0" TextWrapping="Wrap">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
@@ -311,7 +311,7 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
                                         <TextBlock Text="🐾 Sélection et vente d'un chiot de l'élevage" FontWeight="Bold" FontSize="12" Foreground="#2B6CB0" Margin="0,0,0,5" />
-                                        <ComboBox ItemsSource="{Binding Dogs}" SelectedItem="{Binding SelectedDogForLine}" Height="30" Margin="0,2,0,0">
+                                        <ComboBox x:Name="DogSelectionComboBox" AutomationProperties.AutomationId="Cmb_DogSelection" ItemsSource="{Binding Dogs}" SelectedItem="{Binding SelectedDogForLine}" Height="30" Margin="0,2,0,0">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
                                                     <TextBlock>
@@ -326,14 +326,14 @@
                                             </ComboBox.ItemTemplate>
                                         </ComboBox>
                                     </StackPanel>
-                                    <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Ajouter le chien" Command="{Binding AddLineItemCommand}" VerticalAlignment="Bottom" Height="30" Margin="10,0,0,0" />
-                                    <Button Grid.Column="2" Style="{StaticResource ModernButton}" Content="Ligne libre" Command="{Binding AddLineItemCommand}" CommandParameter="Free" VerticalAlignment="Bottom" Height="30" Margin="10,0,0,0" />
+                                    <Button x:Name="AddDogLineItemButton" AutomationProperties.AutomationId="Btn_AddDogLineItem" ToolTip="Ajouter le chiot sélectionné aux lignes de facturation" Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Ajouter le chien" Command="{Binding AddLineItemCommand}" VerticalAlignment="Bottom" Height="30" Margin="10,0,0,0" />
+                                    <Button x:Name="AddFreeLineItemButton" AutomationProperties.AutomationId="Btn_AddFreeLineItem" ToolTip="Ajouter une ligne de prestation libre (alimentation, soin, etc.)" Grid.Column="2" Style="{StaticResource ModernButton}" Content="Ligne libre" Command="{Binding AddLineItemCommand}" CommandParameter="Free" VerticalAlignment="Bottom" Height="30" Margin="10,0,0,0" />
                                 </Grid>
                             </Border>
 
                             <!-- SECTION : LIGNES D'ARTICLES -->
                             <TextBlock Text="LIGNES DE FACTURATION" FontWeight="Bold" FontSize="11" Foreground="#718096" Margin="0,0,0,8" />
-                            <DataGrid ItemsSource="{Binding SelectedInvoice.LineItems}" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="Horizontal" HeadersVisibility="Column" BorderBrush="#E2E8F0" BorderThickness="1" RowHeight="32" Background="White" Margin="0,0,0,20">
+                            <DataGrid x:Name="LineItemsDataGrid" AutomationProperties.AutomationId="Grid_LineItems" ItemsSource="{Binding SelectedInvoice.LineItems}" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="Horizontal" HeadersVisibility="Column" BorderBrush="#E2E8F0" BorderThickness="1" RowHeight="32" Background="White" Margin="0,0,0,20">
                                 <DataGrid.Columns>
                                     <!-- Description -->
                                     <DataGridTemplateColumn Header="Description de la prestation / Animal" Width="*">
@@ -387,7 +387,7 @@
                                     <DataGridTemplateColumn Width="45">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Button Content="🗑️" Style="{StaticResource DangerButton}" Padding="3,1" Width="26" Height="22" Cursor="Hand" Command="{Binding DataContext.RemoveLineItemCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Visibility="{Binding DataContext.IsInvoiceDraft, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                <Button x:Name="DeleteLineItemButton" AutomationProperties.AutomationId="Btn_DeleteLineItem" ToolTip="Supprimer cette ligne (brouillon uniquement)" Content="🗑️" Style="{StaticResource DangerButton}" Padding="3,1" Width="26" Height="22" Cursor="Hand" Command="{Binding DataContext.RemoveLineItemCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Visibility="{Binding DataContext.IsInvoiceDraft, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
@@ -408,15 +408,15 @@
 
                                 <!-- Total HT -->
                                 <TextBlock Text="Total HT :" FontSize="13" Foreground="#4A5568" Grid.Row="0" Grid.Column="0" Margin="0,4" HorizontalAlignment="Right" />
-                                <TextBlock Text="{Binding SelectedInvoice.TotalHT, StringFormat='{}{0:N2} €'}" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Grid.Row="0" Grid.Column="1" Margin="10,4,0,4" HorizontalAlignment="Right" />
+                                <TextBlock x:Name="TotalHTTextBlock" AutomationProperties.AutomationId="Txt_TotalHT" Text="{Binding SelectedInvoice.TotalHT, StringFormat='{}{0:N2} €'}" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Grid.Row="0" Grid.Column="1" Margin="10,4,0,4" HorizontalAlignment="Right" />
 
                                 <!-- Total TVA -->
                                 <TextBlock Text="Montant de la TVA :" FontSize="13" Foreground="#4A5568" Grid.Row="1" Grid.Column="0" Margin="0,4" HorizontalAlignment="Right" />
-                                <TextBlock Text="{Binding SelectedInvoice.TotalTVA, StringFormat='{}{0:N2} €'}" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Grid.Row="1" Grid.Column="1" Margin="10,4,0,4" HorizontalAlignment="Right" />
+                                <TextBlock x:Name="TotalTVATextBlock" AutomationProperties.AutomationId="Txt_TotalTVA" Text="{Binding SelectedInvoice.TotalTVA, StringFormat='{}{0:N2} €'}" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Grid.Row="1" Grid.Column="1" Margin="10,4,0,4" HorizontalAlignment="Right" />
 
                                 <!-- Total TTC -->
                                 <TextBlock Text="TOTAL TTC À PAYER :" FontSize="15" FontWeight="Bold" Foreground="#1A202C" Grid.Row="2" Grid.Column="0" Margin="0,8,0,4" HorizontalAlignment="Right" />
-                                <TextBlock Text="{Binding SelectedInvoice.TotalTTC, StringFormat='{}{0:N2} €'}" FontSize="16" FontWeight="Bold" Foreground="#2B6CB0" Grid.Row="2" Grid.Column="1" Margin="10,8,0,4" HorizontalAlignment="Right" />
+                                <TextBlock x:Name="TotalTTCTextBlock" AutomationProperties.AutomationId="Txt_TotalTTC" Text="{Binding SelectedInvoice.TotalTTC, StringFormat='{}{0:N2} €'}" FontSize="16" FontWeight="Bold" Foreground="#2B6CB0" Grid.Row="2" Grid.Column="1" Margin="10,8,0,4" HorizontalAlignment="Right" />
                             </Grid>
 
                             <!-- MENTION LÉGALE EXONÉRATION TVA SI APPLICABLE -->
@@ -450,11 +450,11 @@
                                         
                                         <!-- Empreinte précédente -->
                                         <TextBlock Text="Empreinte précédente :" FontSize="11" Foreground="#4A5568" Grid.Row="0" Grid.Column="0" Margin="0,2" />
-                                        <TextBlock Text="{Binding SelectedInvoice.PreviousInvoiceSignature}" FontSize="11" FontFamily="Consolas" Foreground="#276749" Grid.Row="0" Grid.Column="1" Margin="5,2" TextTrimming="CharacterEllipsis" FontWeight="SemiBold" ToolTip="{Binding SelectedInvoice.PreviousInvoiceSignature}" />
+                                        <TextBlock x:Name="PreviousSignatureTextBlock" AutomationProperties.AutomationId="Txt_PreviousSignature" Text="{Binding SelectedInvoice.PreviousInvoiceSignature}" FontSize="11" FontFamily="Consolas" Foreground="#276749" Grid.Row="0" Grid.Column="1" Margin="5,2" TextTrimming="CharacterEllipsis" FontWeight="SemiBold" ToolTip="{Binding SelectedInvoice.PreviousInvoiceSignature}" />
 
                                         <!-- Signature cryptographique -->
                                         <TextBlock Text="Signature de sécurité :" FontSize="11" Foreground="#4A5568" Grid.Row="1" Grid.Column="0" Margin="0,2" />
-                                        <TextBlock Text="{Binding SelectedInvoice.Signature}" FontSize="11" FontFamily="Consolas" Foreground="#276749" Grid.Row="1" Grid.Column="1" Margin="5,2" TextTrimming="CharacterEllipsis" FontWeight="Bold" ToolTip="{Binding SelectedInvoice.Signature}" />
+                                        <TextBlock x:Name="CurrentSignatureTextBlock" AutomationProperties.AutomationId="Txt_CurrentSignature" Text="{Binding SelectedInvoice.Signature}" FontSize="11" FontFamily="Consolas" Foreground="#276749" Grid.Row="1" Grid.Column="1" Margin="5,2" TextTrimming="CharacterEllipsis" FontWeight="Bold" ToolTip="{Binding SelectedInvoice.Signature}" />
                                     </Grid>
                                     <TextBlock Text="Ce document a été signé électroniquement et est scellé. Conformément à la réglementation française, son intégrité et son inaltérabilité sont garanties en base de données SQLite." FontSize="10.5" FontStyle="Italic" Foreground="#2F855A" Margin="0,8,0,0" />
                                 </StackPanel>
