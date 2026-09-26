@@ -17,6 +17,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly IInvoiceRepository _invoiceRepository;
     private readonly IDogRepository _dogRepository;
     private readonly IInvoiceService _invoiceService;
+    private readonly IInvoicePdfService _invoicePdfService;
 
     [ObservableProperty]
     private ObservableCollection<Invoice> _invoices = new();
@@ -40,11 +41,13 @@ public partial class MainWindowViewModel : ObservableObject
     public MainWindowViewModel(
         IInvoiceRepository invoiceRepository,
         IDogRepository dogRepository,
-        IInvoiceService invoiceService)
+        IInvoiceService invoiceService,
+        IInvoicePdfService invoicePdfService)
     {
         _invoiceRepository = invoiceRepository;
         _dogRepository = dogRepository;
         _invoiceService = invoiceService;
+        _invoicePdfService = invoicePdfService;
     }
 
     [RelayCommand]
@@ -199,6 +202,52 @@ public partial class MainWindowViewModel : ObservableObject
             {
                 MessageBox.Show($"Erreur lors de la création de l'avoir : {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+    }
+
+    [RelayCommand]
+    public async Task ExportPdfAsync()
+    {
+        if (SelectedInvoice == null) return;
+
+        try
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Exporter la facture au format PDF",
+                Filter = "Document PDF (*.pdf)|*.pdf",
+                FileName = $"Facture_{SelectedInvoice.InvoiceNumber.Replace("/", "_")}.pdf"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                await _invoicePdfService.GenerateInvoicePdfToFileAsync(SelectedInvoice, saveFileDialog.FileName);
+
+                var openResult = MessageBox.Show(
+                    $"Le document PDF a été généré avec succès :\n\n{saveFileDialog.FileName}\n\nSouhaitez-vous l'ouvrir immédiatement ?",
+                    "Exportation PDF Réussie",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+
+                if (openResult == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(saveFileDialog.FileName)
+                        {
+                            UseShellExecute = true
+                        });
+                    }
+                    catch (Exception openEx)
+                    {
+                        MessageBox.Show($"Impossible d'ouvrir le lecteur PDF automatiquement : {openEx.Message}", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Erreur lors de la génération du PDF : {ex.Message}", "Erreur Export PDF", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

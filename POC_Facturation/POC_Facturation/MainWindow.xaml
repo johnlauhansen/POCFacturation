@@ -217,7 +217,9 @@
                             <!-- Validation fiscale officielle (Inaltérable) -->
                             <Button x:Name="ValidateInvoiceButton" AutomationProperties.AutomationId="Btn_ValidateInvoice" ToolTip="Valider et sceller définitivement la facture (inaltérable)" Style="{StaticResource SuccessButton}" Content="Valider Fiscalement (Sceller)" Command="{Binding ValidateInvoiceCommand}" Visibility="{Binding IsInvoiceDraft, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,8,0" />
                             <!-- Annuler via Avoir -->
-                            <Button x:Name="CreateCreditNoteButton" AutomationProperties.AutomationId="Btn_CreateCreditNote" ToolTip="Générer un avoir fiscal négatif pour annuler cette facture" Style="{StaticResource DangerButton}" Content="Créer un Avoir (Annulation)" Command="{Binding CreateCreditNoteCommand}" Visibility="{Binding IsInvoiceValidated, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            <Button x:Name="CreateCreditNoteButton" AutomationProperties.AutomationId="Btn_CreateCreditNote" ToolTip="Générer un avoir fiscal négatif pour annuler cette facture" Style="{StaticResource DangerButton}" Content="Créer un Avoir (Annulation)" Command="{Binding CreateCreditNoteCommand}" Visibility="{Binding IsInvoiceValidated, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,8,0" />
+                            <!-- Exporter en PDF officiel -->
+                            <Button x:Name="ExportPdfButton" AutomationProperties.AutomationId="Btn_ExportPdf" ToolTip="Exporter la facture scellée au format PDF officiel" Style="{StaticResource ModernButton}" Content="📄 Exporter PDF" Command="{Binding ExportPdfCommand}" Visibility="{Binding IsInvoiceValidated, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         </StackPanel>
                     </Grid>
                 </Border>

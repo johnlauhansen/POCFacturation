@@ -68,10 +68,11 @@ graph TD
 |    POC_Facturation.Services     |           |          POC_Facturation.Domain           |
 |  - InvoiceService               |           |  - Entités : Invoice, DogDetail,          |
 |    (calcul TVA, signatures SHA) |           |              InvoiceLineItem              |
-|  - GlobalExceptionHandler       |---------->|  - Énumérations : InvoiceStatus, Sex      |
-|  - Contrats :                   |           |  - Interfaces Dépôts :                    |
-|    * IGlobalExceptionHandler    |           |    * IInvoiceRepository                   |
-|    * IUserNotifier              |           |    * IDogRepository                       |
+|  - InvoicePdfService (QuestPDF) |           |  - Énumérations : InvoiceStatus, Sex      |
+|  - GlobalExceptionHandler       |---------->|  - Interfaces Dépôts & Services :         |
+|  - Contrats :                   |           |    * IInvoiceRepository                   |
+|    * IGlobalExceptionHandler    |           |    * IDogRepository                       |
+|    * IUserNotifier              |           |    * IInvoicePdfService                   |
 +---------------------------------+           +-------------------------------------------+
                  |                                                 ^
                  | Journalisation des erreurs                      | Implémente (Encapsulé)

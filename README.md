@@ -3,7 +3,7 @@
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF](https://img.shields.io/badge/Platform-WPF%20Windows-0078D7?logo=windows&logoColor=white)](https://learn.microsoft.com/dotnet/desktop/wpf/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20DDD-brightgreen)](#-architecture-de-la-solution)
-[![Tests](https://img.shields.io/badge/Tests-xUnit%20%2F%2021%20passing-success?logo=xunit)](POC_Facturation/POC_Facturation.Tests/)
+[![Tests](https://img.shields.io/badge/Tests-xUnit%20%2F%2025%20passing-success?logo=xunit)](POC_Facturation/POC_Facturation.Tests/)
 [![Compliance](https://img.shields.io/badge/Conformit%C3%A9-NF525%20%2F%20Art.%20286%20CGI-blue)](#-conformit%C3%A9-l%C3%A9gale--anti-fraude-tva)
 
 Application de bureau moderne sous **WPF** (.NET 10) conçue pour la gestion de facturation d'un élevage canin professionnel, dans le respect strict des réglementations fiscales françaises (**Loi Anti-Fraude TVA** / principes de la norme **NF525** / **Factur-X**).
@@ -14,6 +14,7 @@ Application de bureau moderne sous **WPF** (.NET 10) conçue pour la gestion de 
 - [✨ Fonctionnalités Clés](#-fonctionnalités-clés)
 - [🏗️ Architecture de la Solution](#️-architecture-de-la-solution)
 - [⚖️ Conformité Légale & Anti-Fraude TVA](#️-conformité-légale--anti-fraude-tva)
+- [📄 Génération d'Édition PDF (QuestPDF)](#-génération-dédition-pdf-questpdf)
 - [🛡️ Tolérance aux Pannes & Journalisation (Serilog)](#️-tolérance-aux-pannes--journalisation-serilog)
 - [🚀 Démarrage Rapide](#-démarrage-rapide)
 - [🧪 Tests Unitaires](#-tests-unitaires)
@@ -27,6 +28,12 @@ Application de bureau moderne sous **WPF** (.NET 10) conçue pour la gestion de 
   * Création de brouillons modifiables (`Draft`).
   * Scellement et validation fiscale inaltérable (`Validated`).
   * Génération d'avoirs rectificatifs négatifs pour annulation légale (`Credit Note`).
+* **Édition & Export PDF Officiel (QuestPDF)** :
+  * Génération en 1 clic de la facture ou avoir au format PDF vectoriel haute définition (A4).
+  * En-tête officiel de l'élevage (SIRET, coordonnées, dates).
+  * Tableau complet des prestations avec détails réglementaires de l'animal.
+  * Bloc de conformité fiscale NF525 affichant la signature cryptographique SHA-256 et l'empreinte précédente scellée.
+  * Proposition d'ouverture automatique dans le visualiseur PDF par défaut.
 * **Gestion Métier Spécifique à l'Élevage Canin** :
   * Sélection interactive parmi les chiots disponibles de l'élevage.
   * Mention obligatoire automatique des identifiants réglementaires : numéro national d'identification **I-CAD** (puce à 15 chiffres / tatouage), inscription au **LOF**, date de naissance, sexe, couleur, race et numéro de passeport européen.
@@ -60,10 +67,11 @@ Le projet est conçu selon les principes de la **Clean Architecture** et du **Do
 |    POC_Facturation.Services     |           |          POC_Facturation.Domain           |
 |  - InvoiceService               |           |  - Entités : Invoice, DogDetail,          |
 |    (calcul TVA, signatures SHA) |           |              InvoiceLineItem              |
-|  - GlobalExceptionHandler       |---------->|  - Énumérations : InvoiceStatus, Sex      |
-|  - Contrats :                   |           |  - Interfaces Dépôts :                    |
-|    * IGlobalExceptionHandler    |           |    * IInvoiceRepository                   |
-|    * IUserNotifier              |           |    * IDogRepository                       |
+|  - InvoicePdfService (QuestPDF) |           |  - Énumérations : InvoiceStatus, Sex      |
+|  - GlobalExceptionHandler       |---------->|  - Interfaces Dépôts & Services :         |
+|  - Contrats :                   |           |    * IInvoiceRepository                   |
+|    * IGlobalExceptionHandler    |           |    * IDogRepository                       |
+|    * IUserNotifier              |           |    * IInvoicePdfService                   |
 +---------------------------------+           +-------------------------------------------+
                  |                                                 ^
                  | Journalisation des erreurs                      | Implémente (Encapsulé)
@@ -104,6 +112,19 @@ Le système intègre nativement les trois exigences fondamentales de l'article 2
    * Toute tentative de falsification ultérieure en base d'une facture romprait la chaîne de signatures de toutes les factures suivantes.
 3. **Séquençage Chronologique sans rupture** :
    * Numérotation continue et irréversible (format : `F-YYYY-XXXX`).
+
+---
+
+## 📄 Génération d'Édition PDF (QuestPDF)
+
+L'application intègre un moteur de rendu de documents basé sur **QuestPDF** (Fluent API déclarative C# sous licence Community) :
+
+* **Rendu Vectoriel Haute Définition** : Génère des documents A4 impeccables prêts pour l'impression ou l'envoi dématérialisé au client.
+* **En-tête & Vendeur** : Coordonnées complètes de l'élevage, numéro SIRET, TVA intracommunautaire, dates d'émission et d'échéance.
+* **Mentions Spécifiques de l'Animal** : Si un chiot vendu est rattaché à une ligne de facture, ses identifiants légaux (**numéro de puce I-CAD à 15 chiffres**, statut **LOF**, sexe, couleur, passeport) sont directement inscrits sous l'intitulé de la ligne.
+* **Bloc de Scellement NF525** : Pour les factures validées, un encadré de sécurité affiche l'empreinte précédente et la signature SHA-256 scellée.
+* **Exonération de TVA** : Mention automatique de l'article 293 B du CGI si la structure n'est pas assujettie à la TVA.
+* **Testabilité Totale** : Le composant `InvoicePdfService` est encapsulé dans `POC_Facturation.Services` et testé unitairement sans dépendance graphique WPF.
 
 ---
 
