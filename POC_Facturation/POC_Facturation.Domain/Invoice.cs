@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace POC_Facturation.Domain;
 
@@ -21,8 +22,8 @@ public class Invoice
     public string CustomerName { get; set; } = string.Empty;
     public string CustomerAddress { get; set; } = string.Empty;
     
-    // Lignes de la facture
-    public List<InvoiceLineItem> LineItems { get; set; } = new();
+    // Lignes de la facture (ObservableCollection pour la réactivité WPF dans la DataGrid)
+    public ObservableCollection<InvoiceLineItem> LineItems { get; set; } = new();
     
     // Indicateur si assujetti à la TVA
     public bool IsTvaApplicable { get; set; } = true;             // false si micro-entreprise (Franchise en base de TVA - art. 293 B du CGI)

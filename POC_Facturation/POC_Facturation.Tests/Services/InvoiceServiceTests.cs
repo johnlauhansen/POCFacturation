@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -24,7 +25,7 @@ public class InvoiceServiceTests
             SellerSiret = "12345678901234",
             CustomerName = "Jean Dupont",
             IssueDate = new DateTime(2026, 08, 23),
-            LineItems = new List<InvoiceLineItem>
+            LineItems = new ObservableCollection<InvoiceLineItem>
             {
                 new() { Description = "Vente Chiot Berger Allemand", Quantity = 1, UnitPriceHT = 1200m, TvaRate = 20m }
             }
@@ -53,7 +54,7 @@ public class InvoiceServiceTests
             Status = InvoiceStatus.Draft,
             SellerSiret = "12345678901234",
             CustomerName = "Jean Dupont",
-            LineItems = new List<InvoiceLineItem>() // Vide
+            LineItems = new ObservableCollection<InvoiceLineItem>() // Vide
         };
 
         // Act & Assert
@@ -73,7 +74,7 @@ public class InvoiceServiceTests
             Status = InvoiceStatus.Draft,
             SellerSiret = "", // Manquant
             CustomerName = "Jean Dupont",
-            LineItems = new List<InvoiceLineItem> { new() { Description = "Test", UnitPriceHT = 10m } }
+            LineItems = new ObservableCollection<InvoiceLineItem> { new() { Description = "Test", UnitPriceHT = 10m } }
         };
 
         // Act & Assert
@@ -93,7 +94,7 @@ public class InvoiceServiceTests
             Status = InvoiceStatus.Validated, // Déjà validée !
             SellerSiret = "12345678901234",
             CustomerName = "Jean Dupont",
-            LineItems = new List<InvoiceLineItem> { new() { Description = "Test", UnitPriceHT = 10m } }
+            LineItems = new ObservableCollection<InvoiceLineItem> { new() { Description = "Test", UnitPriceHT = 10m } }
         };
 
         // Act & Assert
@@ -114,7 +115,7 @@ public class InvoiceServiceTests
             SellerSiret = "12345678901234",
             CustomerName = "Client Un",
             IssueDate = new DateTime(2026, 08, 23),
-            LineItems = new List<InvoiceLineItem> { new() { Description = "Chiot 1", UnitPriceHT = 1000m, TvaRate = 20m } }
+            LineItems = new ObservableCollection<InvoiceLineItem> { new() { Description = "Chiot 1", UnitPriceHT = 1000m, TvaRate = 20m } }
         };
 
         var invoice2 = new Invoice
@@ -123,7 +124,7 @@ public class InvoiceServiceTests
             SellerSiret = "12345678901234",
             CustomerName = "Client Deux",
             IssueDate = new DateTime(2026, 08, 23),
-            LineItems = new List<InvoiceLineItem> { new() { Description = "Chiot 2", UnitPriceHT = 1500m, TvaRate = 20m } }
+            LineItems = new ObservableCollection<InvoiceLineItem> { new() { Description = "Chiot 2", UnitPriceHT = 1500m, TvaRate = 20m } }
         };
 
         // Act
@@ -168,7 +169,7 @@ public class InvoiceServiceTests
             SellerName = "Elevage Elevé",
             CustomerName = "Jean Client",
             IsTvaApplicable = true,
-            LineItems = new List<InvoiceLineItem>
+            LineItems = new ObservableCollection<InvoiceLineItem>
             {
                 new() { Description = "Chiot Vente", Quantity = 1, UnitPriceHT = 1000m, TvaRate = 20m }
             }

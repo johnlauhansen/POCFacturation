@@ -81,7 +81,7 @@ public partial class MainWindowViewModel : ObservableObject
                 CustomerName = "Nouveau Client",
                 CustomerAddress = "Adresse du Client",
                 IsTvaApplicable = true,
-                LineItems = new List<InvoiceLineItem>()
+                LineItems = new ObservableCollection<InvoiceLineItem>()
             };
 
             // Ajouter une ligne d'article par défaut
@@ -203,19 +203,19 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void AddLineItem()
+    public void AddLineItem(string? parameter = null)
     {
         if (SelectedInvoice == null || SelectedInvoice.Status != InvoiceStatus.Draft) return;
 
         var newItem = new InvoiceLineItem
         {
-            Description = "Ligne d'article",
+            Description = "Ligne de prestation",
             Quantity = 1,
             UnitPriceHT = 500m,
             TvaRate = 20.0m
         };
 
-        if (SelectedDogForLine != null)
+        if (parameter != "Free" && SelectedDogForLine != null)
         {
             newItem.Description = $"Vente de chien : {SelectedDogForLine.Breed} ({SelectedDogForLine.Color}), Puce I-CAD : {SelectedDogForLine.IcadNumber}";
             newItem.DogDetailId = SelectedDogForLine.Id;
@@ -223,16 +223,11 @@ public partial class MainWindowViewModel : ObservableObject
             newItem.UnitPriceHT = 1200m; // Prix type de vente de chien
         }
 
-        // Ajouter l'item à la facture en cours
+        // Ajouter l'item à la collection observable (notifie directement la DataGrid)
         SelectedInvoice.LineItems.Add(newItem);
-        
-        // Notification de mise à jour des totaux (et déclenchement du rafraîchissement)
-        OnPropertyChanged(nameof(SelectedInvoice));
-        
-        // Forcer le rafraîchissement des bindings des totaux
-        SelectedInvoice.TotalHT = SelectedInvoice.LineItems.Sum(l => l.TotalHT);
-        SelectedInvoice.TotalTVA = SelectedInvoice.LineItems.Sum(l => l.TotalTVA);
-        SelectedInvoice.TotalTTC = SelectedInvoice.LineItems.Sum(l => l.TotalTTC);
+
+        // Recalcul des totaux et rafraîchissement des liaisons
+        UpdateInvoiceTotals(SelectedInvoice);
     }
 
     [RelayCommand]
@@ -240,12 +235,29 @@ public partial class MainWindowViewModel : ObservableObject
     {
         if (SelectedInvoice == null || SelectedInvoice.Status != InvoiceStatus.Draft || item == null) return;
 
+        // Supprimer l'item de la collection observable (suppression visuelle instantanée dans la DataGrid)
         SelectedInvoice.LineItems.Remove(item);
-        
-        OnPropertyChanged(nameof(SelectedInvoice));
 
-        SelectedInvoice.TotalHT = SelectedInvoice.LineItems.Sum(l => l.TotalHT);
-        SelectedInvoice.TotalTVA = SelectedInvoice.LineItems.Sum(l => l.TotalTVA);
-        SelectedInvoice.TotalTTC = SelectedInvoice.LineItems.Sum(l => l.TotalTTC);
+        // Recalcul des totaux et rafraîchissement des liaisons
+        UpdateInvoiceTotals(SelectedInvoice);
+    }
+
+    private void UpdateInvoiceTotals(Invoice invoice)
+    {
+        invoice.TotalHT = invoice.LineItems.Sum(l => l.TotalHT);
+        if (invoice.IsTvaApplicable)
+        {
+            invoice.TotalTVA = invoice.LineItems.Sum(l => l.TotalTVA);
+            invoice.TotalTTC = invoice.LineItems.Sum(l => l.TotalTTC);
+        }
+        else
+        {
+            invoice.TotalTVA = 0;
+            invoice.TotalTTC = invoice.TotalHT;
+        }
+
+        // Notifie WPF de rafraîchir l'ensemble des liaisons dépendant de la facture sélectionnée
+        OnPropertyChanged(nameof(SelectedInvoice));
+        OnPropertyChanged(string.Empty);
     }
 }
