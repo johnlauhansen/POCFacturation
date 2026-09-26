@@ -412,7 +412,7 @@
 
                                 <!-- Total TVA -->
                                 <TextBlock Text="Montant de la TVA :" FontSize="13" Foreground="#4A5568" Grid.Row="1" Grid.Column="0" Margin="0,4" HorizontalAlignment="Right" />
-                                <TextBlock Text="{Binding SelectedInvoice.TotalVAT, StringFormat='{}{0:N2} €'}" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Grid.Row="1" Grid.Column="1" Margin="10,4,0,4" HorizontalAlignment="Right" />
+                                <TextBlock Text="{Binding SelectedInvoice.TotalTVA, StringFormat='{}{0:N2} €'}" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Grid.Row="1" Grid.Column="1" Margin="10,4,0,4" HorizontalAlignment="Right" />
 
                                 <!-- Total TTC -->
                                 <TextBlock Text="TOTAL TTC À PAYER :" FontSize="15" FontWeight="Bold" Foreground="#1A202C" Grid.Row="2" Grid.Column="0" Margin="0,8,0,4" HorizontalAlignment="Right" />
