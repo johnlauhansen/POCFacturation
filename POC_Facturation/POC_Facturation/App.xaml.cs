@@ -4,6 +4,7 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using POC_Facturation.Data;
 using POC_Facturation.Services;
+using POC_Facturation.ViewModels;
 
 namespace POC_Facturation;
 
@@ -45,10 +46,7 @@ public partial class App : Application
         services.AddBusinessServices();
 
         // 4. Enregistrement de la couche WPF (Vues et ViewModels)
+        services.AddTransient<MainWindowViewModel>();
         services.AddTransient<MainWindow>();
-        
-        // Exemples d'enregistrement futurs :
-        // services.AddTransient<InvoiceListViewModel>();
-        // services.AddTransient<InvoiceEditViewModel>();
     }
 }

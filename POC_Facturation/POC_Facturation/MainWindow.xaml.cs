@@ -16,9 +16,13 @@ namespace POC_Facturation
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow(ViewModels.MainWindowViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
+
+            // Chargement initial asynchrone des factures et chiens
+            Loaded += async (s, e) => await viewModel.LoadDataCommand.ExecuteAsync(null);
         }
     }
 }

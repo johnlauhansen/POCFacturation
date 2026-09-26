@@ -1,12 +1,468 @@
-﻿<Window x:Class="POC_Facturation.MainWindow"
+<Window x:Class="POC_Facturation.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:POC_Facturation"
+        xmlns:domain="clr-namespace:POC_Facturation.Domain;assembly=POC_Facturation.Domain"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Élevage Canin - Système de Facturation Conforme" Height="700" Width="1100"
+        WindowStartupLocation="CenterScreen" Background="#F7FAFC">
+    
+    <Window.Resources>
+        <!-- Déclaration du convertisseur booléen vers visibilité standard de WPF -->
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
+        <!-- Style pour les boutons modernes -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="#4A5568" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="4" />
+                </Style>
+            </Style.Resources>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Background" Value="#3182CE" />
+        </Style>
+
+        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Background" Value="#38A169" />
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Background" Value="#E53E3E" />
+        </Style>
+
+        <!-- Convertisseur de statut de facture en couleur de badge -->
+        <Style x:Key="StatusBadge" TargetType="Border">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="6,2" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="Draft">
+                    <Setter Property="Background" Value="#FEEBC8" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Validated">
+                    <Setter Property="Background" Value="#C6F6D5" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Cancelled">
+                    <Setter Property="Background" Value="#FED7D7" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="StatusBadgeText" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="11" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="Draft">
+                    <Setter Property="Foreground" Value="#C05621" />
+                    <Setter Property="Text" Value="BROUILLON" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Validated">
+                    <Setter Property="Foreground" Value="#22543D" />
+                    <Setter Property="Text" Value="VALIDÉE" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Cancelled">
+                    <Setter Property="Foreground" Value="#742A2A" />
+                    <Setter Property="Text" Value="AVOIR / ANNULÉE" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <!-- Liste latérale des factures (Gauche) -->
+            <ColumnDefinition Width="320" />
+            <!-- Séparateur -->
+            <ColumnDefinition Width="1" />
+            <!-- Zone d'édition/affichage (Droite) -->
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ================= GAUCHE : LISTE DES FACTURES ================= -->
+        <Grid Background="#EDF2F7" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- En-tête de la barre latérale -->
+            <Border Background="#2D3748" Padding="15,12" Grid.Row="0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Factures Élevage" Foreground="White" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="+ Nouveau" Command="{Binding CreateDraftInvoiceCommand}" Height="30" Padding="12,2" />
+                </Grid>
+            </Border>
+
+            <!-- Liste des factures -->
+            <ListBox ItemsSource="{Binding Invoices}" SelectedItem="{Binding SelectedInvoice}" Grid.Row="1" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Padding="10">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="5,8" HorizontalAlignment="Stretch" Width="280">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Numéro de facture / Brouillon -->
+                                <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0">
+                                    <TextBlock FontWeight="Bold" FontSize="13" Foreground="#2D3748">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="{Binding InvoiceNumber}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Draft">
+                                                        <Setter Property="Text" Value="Facture Brouillon" />
+                                                        <Setter Property="FontStyle" Value="Italic" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Date d'émission -->
+                                <TextBlock Text="{Binding IssueDate, StringFormat='dd/MM/yyyy'}" Grid.Row="0" Grid.Column="1" FontSize="11" Foreground="#718096" VerticalAlignment="Center" />
+
+                                <!-- Nom du client -->
+                                <TextBlock Text="{Binding CustomerName}" Grid.Row="1" Grid.Column="0" FontSize="12" Foreground="#4A5568" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" />
+
+                                <!-- Totaux et Badge de statut -->
+                                <Border Style="{StaticResource StatusBadge}" Grid.Row="2" Grid.Column="0" Margin="0,5,0,0">
+                                    <TextBlock Style="{StaticResource StatusBadgeText}" />
+                                </Border>
+
+                                <TextBlock Text="{Binding TotalTTC, StringFormat='{}{0:N2} €'}" Grid.Row="2" Grid.Column="1" FontWeight="Bold" FontSize="13" Foreground="#2D3748" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+
+        <!-- Séparateur -->
+        <Border Grid.Column="1" Background="#CBD5E0" />
+
+        <!-- ================= DROITE : DÉTAIL / ÉDITION DE FACTURE ================= -->
+        <Grid Grid.Column="2" Background="#F7FAFC">
+            <!-- État vide (si aucune facture sélectionnée) -->
+            <Grid Visibility="{Binding IsInvoiceSelected, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock Text="🐶" FontSize="72" HorizontalAlignment="Center" Margin="0,0,0,10" />
+                    <TextBlock Text="Aucune facture sélectionnée" FontSize="18" FontWeight="Bold" Foreground="#718096" HorizontalAlignment="Center" />
+                    <TextBlock Text="Sélectionnez une facture dans la liste ou cliquez sur '+ Nouveau'" FontSize="13" Foreground="#A0AEC0" Margin="0,5,0,15" HorizontalAlignment="Center" />
+                    <Button Style="{StaticResource PrimaryButton}" Content="Créer un brouillon" Command="{Binding CreateDraftInvoiceCommand}" HorizontalAlignment="Center" Padding="15,8" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Détail de la facture (si sélectionnée) -->
+            <Grid Visibility="{Binding IsInvoiceSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <!-- Barre d'actions supérieure -->
+                    <RowDefinition Height="Auto" />
+                    <!-- Corps de la facture défilable -->
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Barre d'actions supérieure -->
+                <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="15,10" Grid.Row="0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- En-tête gauche (Numéro et badge) -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#1A202C" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="{Binding SelectedInvoice.InvoiceNumber}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedInvoice.Status}" Value="Draft">
+                                                <Setter Property="Text" Value="Nouveau Brouillon" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <Border DataContext="{Binding SelectedInvoice}" Style="{StaticResource StatusBadge}" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource StatusBadgeText}" />
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Actions droites (Sauvegarder, Valider, Avoir) -->
+                        <StackPanel Orientation="Horizontal" Grid.Column="1">
+                            <!-- Enregistrement brouillon -->
+                            <Button Style="{StaticResource ModernButton}" Content="Sauvegarder" Command="{Binding SaveInvoiceCommand}" Visibility="{Binding IsInvoiceDraft, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,8,0" />
+                            <!-- Validation fiscale officielle (Inaltérable) -->
+                            <Button Style="{StaticResource SuccessButton}" Content="Valider Fiscalement (Sceller)" Command="{Binding ValidateInvoiceCommand}" Visibility="{Binding IsInvoiceDraft, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,8,0" />
+                            <!-- Annuler via Avoir -->
+                            <Button Style="{StaticResource DangerButton}" Content="Créer un Avoir (Annulation)" Command="{Binding CreateCreditNoteCommand}" Visibility="{Binding IsInvoiceValidated, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Corps défilable de la facture -->
+                <ScrollViewer Grid.Row="1" Padding="20" VerticalScrollBarVisibility="Auto">
+                    <Border Background="White" CornerRadius="6" BorderBrush="#E2E8F0" BorderThickness="1" Padding="25">
+                        <StackPanel>
+                            <!-- LOGO & EN-TÊTE ÉLEVAGE -->
+                            <Grid Margin="0,0,0,25">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                
+                                <StackPanel>
+                                    <TextBlock Text="ÉLEVAGE CANIN PROFESSIONNEL" FontWeight="Bold" FontSize="11" Foreground="#4A5568" />
+                                    <TextBox Text="{Binding SelectedInvoice.SellerName}" FontSize="18" FontWeight="Bold" Foreground="#2D3748" BorderThickness="0" Background="Transparent" IsReadOnly="True" Margin="0,4,0,2" />
+                                    <TextBox Text="{Binding SelectedInvoice.SellerAddress}" FontSize="12" Foreground="#4A5568" BorderThickness="0" Background="Transparent" IsReadOnly="True" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <TextBlock Text="SIRET : " FontSize="11" Foreground="#718096" />
+                                        <TextBox Text="{Binding SelectedInvoice.SellerSiret}" FontSize="11" Foreground="#718096" BorderThickness="0" Background="Transparent" IsReadOnly="True" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Bloc Dates -->
+                                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                    <Grid Margin="0,0,0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="120" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Émise le :" FontWeight="SemiBold" Foreground="#4A5568" />
+                                        <DatePicker SelectedDate="{Binding SelectedInvoice.IssueDate}" Grid.Column="1" IsEnabled="{Binding IsInvoiceDraft}" Height="25" />
+                                    </Grid>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="120" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Échéance :" FontWeight="SemiBold" Foreground="#4A5568" />
+                                        <DatePicker SelectedDate="{Binding SelectedInvoice.DueDate}" Grid.Column="1" IsEnabled="{Binding IsInvoiceDraft}" Height="25" />
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Margin="0,0,0,20" />
+
+                            <!-- SECTION : CLIENT & TVA -->
+                            <Grid Margin="0,0,0,25">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="180" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Bloc Client -->
+                                <StackPanel>
+                                    <TextBlock Text="FACTURER À :" FontWeight="Bold" FontSize="11" Foreground="#718096" Margin="0,0,0,6" />
+                                    <TextBox Text="{Binding SelectedInvoice.CustomerName, UpdateSourceTrigger=PropertyChanged}" FontSize="14" FontWeight="Bold" Foreground="#2D3748" BorderBrush="#CBD5E0" BorderThickness="0,0,0,1" Background="Transparent" IsReadOnly="{Binding IsInvoiceValidated}" Margin="0,0,0,6" Padding="0,3" />
+                                    <TextBox Text="{Binding SelectedInvoice.CustomerAddress, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Foreground="#4A5568" BorderBrush="#CBD5E0" BorderThickness="0,0,0,1" Background="Transparent" IsReadOnly="{Binding IsInvoiceValidated}" Padding="0,3" AcceptsReturn="True" Height="40" />
+                                </StackPanel>
+
+                                <!-- Bloc Régime TVA -->
+                                <Border Grid.Column="1" Background="#F7FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="4" Padding="12" Margin="15,0,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Régime de TVA" FontWeight="Bold" FontSize="11" Foreground="#718096" Margin="0,0,0,6" />
+                                        <CheckBox IsChecked="{Binding SelectedInvoice.IsTvaApplicable}" Content="Assujetti à la TVA (20%)" IsEnabled="{Binding IsInvoiceDraft}" VerticalAlignment="Center" />
+                                        <TextBlock Text="Exonération Art. 293 B" FontSize="10" Foreground="#A0AEC0" Margin="0,6,0,0" TextWrapping="Wrap">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedInvoice.IsTvaApplicable}" Value="False">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- SECTION : LOGIQUE AJOUT CHIOT (Outil d'aide à la saisie, Brouillon uniquement) -->
+                            <Border Background="#EBF8FF" BorderBrush="#BEE3F8" BorderThickness="1" CornerRadius="6" Padding="15" Margin="0,0,0,25" Visibility="{Binding IsInvoiceDraft, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="🐾 Sélection et vente d'un chiot de l'élevage" FontWeight="Bold" FontSize="12" Foreground="#2B6CB0" Margin="0,0,0,5" />
+                                        <ComboBox ItemsSource="{Binding Dogs}" SelectedItem="{Binding SelectedDogForLine}" Height="30" Margin="0,2,0,0">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                                        <Run Text="{Binding Breed}" FontWeight="Bold" />
+                                                        <Run Text=" - " />
+                                                        <Run Text="{Binding Color}" />
+                                                        <Run Text=" (Puce: " />
+                                                        <Run Text="{Binding IcadNumber}" />
+                                                        <Run Text=")" />
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Ajouter le chien" Command="{Binding AddLineItemCommand}" VerticalAlignment="Bottom" Height="30" Margin="10,0,0,0" />
+                                    <Button Grid.Column="2" Style="{StaticResource ModernButton}" Content="Ligne libre" Command="{Binding AddLineItemCommand}" CommandParameter="Free" VerticalAlignment="Bottom" Height="30" Margin="10,0,0,0" />
+                                </Grid>
+                            </Border>
+
+                            <!-- SECTION : LIGNES D'ARTICLES -->
+                            <TextBlock Text="LIGNES DE FACTURATION" FontWeight="Bold" FontSize="11" Foreground="#718096" Margin="0,0,0,8" />
+                            <DataGrid ItemsSource="{Binding SelectedInvoice.LineItems}" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="Horizontal" HeadersVisibility="Column" BorderBrush="#E2E8F0" BorderThickness="1" RowHeight="32" Background="White" Margin="0,0,0,20">
+                                <DataGrid.Columns>
+                                    <!-- Description -->
+                                    <DataGridTemplateColumn Header="Description de la prestation / Animal" Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding DataContext.IsInvoiceValidated, RelativeSource={RelativeSource AncestorType=Window}}" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" Padding="5,2" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Prix unitaire -->
+                                    <DataGridTemplateColumn Header="P.U. HT (€)" Width="100">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBox Text="{Binding UnitPriceHT, UpdateSourceTrigger=PropertyChanged, StringFormat='{}{0:N2}'}" IsReadOnly="{Binding DataContext.IsInvoiceValidated, RelativeSource={RelativeSource AncestorType=Window}}" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" TextAlignment="Right" Padding="5,2" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Quantité -->
+                                    <DataGridTemplateColumn Header="Qté" Width="55">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding DataContext.IsInvoiceValidated, RelativeSource={RelativeSource AncestorType=Window}}" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" TextAlignment="Center" Padding="5,2" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Taux TVA -->
+                                    <DataGridTemplateColumn Header="TVA (%)" Width="65">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBox Text="{Binding TvaRate, UpdateSourceTrigger=PropertyChanged, StringFormat='{}{0:0.#}'}" IsReadOnly="{Binding DataContext.IsInvoiceValidated, RelativeSource={RelativeSource AncestorType=Window}}" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" TextAlignment="Center" Padding="5,2" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Total TTC calculé -->
+                                    <DataGridTextColumn Header="Total TTC" Binding="{Binding TotalTTC, StringFormat='{}{0:N2} €'}" IsReadOnly="True" Width="100">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="HorizontalAlignment" Value="Right" />
+                                                <Setter Property="VerticalAlignment" Value="Center" />
+                                                <Setter Property="Margin" Value="0,0,10,0" />
+                                                <Setter Property="FontWeight" Value="SemiBold" />
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+
+                                    <!-- Supprimer (Brouillon uniquement) -->
+                                    <DataGridTemplateColumn Width="45">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="🗑️" Style="{StaticResource DangerButton}" Padding="3,1" Width="26" Height="22" Cursor="Hand" Command="{Binding DataContext.RemoveLineItemCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Visibility="{Binding DataContext.IsInvoiceDraft, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- BAS DE FACTURE : TOTAUX FINANCIERS -->
+                            <Grid Margin="0,0,0,25" HorizontalAlignment="Right" Width="300">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="130" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Total HT -->
+                                <TextBlock Text="Total HT :" FontSize="13" Foreground="#4A5568" Grid.Row="0" Grid.Column="0" Margin="0,4" HorizontalAlignment="Right" />
+                                <TextBlock Text="{Binding SelectedInvoice.TotalHT, StringFormat='{}{0:N2} €'}" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Grid.Row="0" Grid.Column="1" Margin="10,4,0,4" HorizontalAlignment="Right" />
+
+                                <!-- Total TVA -->
+                                <TextBlock Text="Montant de la TVA :" FontSize="13" Foreground="#4A5568" Grid.Row="1" Grid.Column="0" Margin="0,4" HorizontalAlignment="Right" />
+                                <TextBlock Text="{Binding SelectedInvoice.TotalVAT, StringFormat='{}{0:N2} €'}" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Grid.Row="1" Grid.Column="1" Margin="10,4,0,4" HorizontalAlignment="Right" />
+
+                                <!-- Total TTC -->
+                                <TextBlock Text="TOTAL TTC À PAYER :" FontSize="15" FontWeight="Bold" Foreground="#1A202C" Grid.Row="2" Grid.Column="0" Margin="0,8,0,4" HorizontalAlignment="Right" />
+                                <TextBlock Text="{Binding SelectedInvoice.TotalTTC, StringFormat='{}{0:N2} €'}" FontSize="16" FontWeight="Bold" Foreground="#2B6CB0" Grid.Row="2" Grid.Column="1" Margin="10,8,0,4" HorizontalAlignment="Right" />
+                            </Grid>
+
+                            <!-- MENTION LÉGALE EXONÉRATION TVA SI APPLICABLE -->
+                            <Border Background="#F7FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="0,0,0,25">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedInvoice.IsTvaApplicable}" Value="False">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock Text="Mention légale obligatoire : « TVA non applicable - article 293 B du Code Général des Impôts (CGI) »." FontSize="11" FontStyle="Italic" Foreground="#718096" HorizontalAlignment="Center" />
+                            </Border>
+
+                            <!-- BLOC DE SIGNATURE DE CONFORMITÉ FISCALE (Loi TVA / NF525) -->
+                            <Border BorderBrush="#C6F6D5" BorderThickness="1" Background="#F0FFF4" CornerRadius="6" Padding="15" Visibility="{Binding IsInvoiceValidated, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <StackPanel>
+                                    <TextBlock Text="🔒 Signature Numérique &amp; Conformité Fiscale (Art. 286 du CGI)" FontWeight="Bold" FontSize="12" Foreground="#22543D" Margin="0,0,0,8" />
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="140" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <!-- Empreinte précédente -->
+                                        <TextBlock Text="Empreinte précédente :" FontSize="11" Foreground="#4A5568" Grid.Row="0" Grid.Column="0" Margin="0,2" />
+                                        <TextBlock Text="{Binding SelectedInvoice.PreviousInvoiceSignature}" FontSize="11" FontFamily="Consolas" Foreground="#276749" Grid.Row="0" Grid.Column="1" Margin="5,2" TextTrimming="CharacterEllipsis" FontWeight="SemiBold" ToolTip="{Binding SelectedInvoice.PreviousInvoiceSignature}" />
+
+                                        <!-- Signature cryptographique -->
+                                        <TextBlock Text="Signature de sécurité :" FontSize="11" Foreground="#4A5568" Grid.Row="1" Grid.Column="0" Margin="0,2" />
+                                        <TextBlock Text="{Binding SelectedInvoice.Signature}" FontSize="11" FontFamily="Consolas" Foreground="#276749" Grid.Row="1" Grid.Column="1" Margin="5,2" TextTrimming="CharacterEllipsis" FontWeight="Bold" ToolTip="{Binding SelectedInvoice.Signature}" />
+                                    </Grid>
+                                    <TextBlock Text="Ce document a été signé électroniquement et est scellé. Conformément à la réglementation française, son intégrité et son inaltérabilité sont garanties en base de données SQLite." FontSize="10.5" FontStyle="Italic" Foreground="#2F855A" Margin="0,8,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>
