@@ -9,6 +9,7 @@ public static class ServicesServiceRegistration
     {
         // Enregistrement des services métiers applicatifs
         services.AddScoped<IInvoiceService, InvoiceService>();
+        services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();
 
         return services;
     }
